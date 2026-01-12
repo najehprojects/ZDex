@@ -7,6 +7,9 @@ ctk.set_appearance_mode("dark")
 
 fullMon = pd.read_csv('data/Lists/pokemon.csv')
 monNames = fullMon['Name'].tolist()
+realNames = monNames
+
+searchDB = False
 
 class ImageFrame(ctk.CTkImage):
     def __init__(self):
@@ -70,7 +73,7 @@ class App(ctk.CTk):
             pady=20
         )
 
-        self.Search.bind("<KeyRelease>", command= lambda event: self.searched())
+        self.Search.bind("<KeyRelease>", command= lambda event: self.searched(searchDB))
 
         self.pokemonList = MainFrame(
             master=self,
@@ -128,14 +131,70 @@ class App(ctk.CTk):
 
             self.temp.widgetName = Name
 
-    def searched(self):
-        query = self.Search.get()
-        print("Search query:", query)
-        for mon in monNames:
-            if query.lower() in mon.lower():
-                print("counts: ", mon)
+    def searched(self, searchDB):
+
+        if searchDB == False:
+            searchDB = True
+            query = self.Search.get()
+            print("Search query:", query)
+
+            for widget in self.pokemonList.winfo_children():
+                widget.destroy()
+
+            count = 0
+
+            if query == "":
+
+                for Dex, Name in enumerate(monNames):
+
+                    self.temp = PokemonButton(
+                        master=self.pokemonList,
+                        fg_color="#1f1f1f",
+                        width=340,
+                        height=30,
+                        text=Name,
+                        command=lambda name=Name, dex=Dex: selected(name, dex)
+                    )
+
+                    self.temp.grid(
+                        row=Dex,
+                        column=0,
+                        padx=5,
+                        pady=2
+                    )
+
+                    self.temp.widgetName = Name
             else:
-                print("no counts: ", mon)
+
+                for mon in monNames:
+                    print(mon)
+                    print(count)
+
+                    if query.lower() in mon.lower():
+                        self.temp = PokemonButton(
+                            master=self.pokemonList,
+                            fg_color="#1f1f1f",
+                            width=340,
+                            height=30,
+                            text=mon,
+                            command=lambda name=mon, dex=count: selected(name, dex)
+                        )
+
+                        self.temp.grid(
+                            row=count,
+                            column=0,
+                            padx=5,
+                            pady=2
+                        )
+
+                        self.temp.widgetName = mon
+
+                    else:
+                        realNames.remove(mon)
+
+                    count += 1
+
+            searchDB = False
 
 app = App()
 app.mainloop()
