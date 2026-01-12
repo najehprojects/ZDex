@@ -19,9 +19,6 @@ class MainFrame(ctk.CTkScrollableFrame):
 class SearchFrame(ctk.CTkEntry):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-    def searched(self):
-        query = self.get()
-        print("Search query: ", query)
 
 class PokemonButton(ctk.CTkButton):
     def __init__(self, master, **kwargs):
@@ -73,7 +70,7 @@ class App(ctk.CTk):
             pady=20
         )
 
-        self.Search.bind("<KeyRelease>", lambda e: print(self.Search.get()))
+        self.Search.bind("<KeyRelease>", command= lambda event: self.searched())
 
         self.pokemonList = MainFrame(
             master=self,
@@ -91,7 +88,7 @@ class App(ctk.CTk):
         self.imageTab = ImageTabs(
             master=self,
             width=550,
-            height=620,
+            height=700,
             #image="data/Images/Sprites/0001.png",
         )
 
@@ -130,6 +127,15 @@ class App(ctk.CTk):
             )
 
             self.temp.widgetName = Name
+
+    def searched(self):
+        query = self.Search.get()
+        print("Search query:", query)
+        for mon in monNames:
+            if query.lower() in mon.lower():
+                print("counts: ", mon)
+            else:
+                print("no counts: ", mon)
 
 app = App()
 app.mainloop()
