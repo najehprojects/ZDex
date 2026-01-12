@@ -248,7 +248,7 @@ class App(ctk.CTk):
             print("HAS X AND Y MEGA")
 
         row = self.fullMon.iloc[indexcode]
-        ndex_csv = str(row["NDex"])  # could be '3', '3M', '150X', etc.
+        ndex_csv = str(row["NDex"])
 
         shiny = False
         female = False
