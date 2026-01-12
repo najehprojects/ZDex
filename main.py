@@ -19,6 +19,9 @@ class MainFrame(ctk.CTkScrollableFrame):
 class SearchFrame(ctk.CTkEntry):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+    def searched():
+        query = SearchFrame.get()
+        print("Search query:", query)
 
 class PokemonButton(ctk.CTkButton):
     def __init__(self, master, **kwargs):
@@ -35,7 +38,12 @@ def selected(pokemon, indexCode):
     pkmnName = fullMon.iloc[indexCode]["Name"]
 
     if (fullMon.iloc[indexCode]["Name"]).startswith("Mega "):
-        print("IS MEGA")
+        if (fullMon.iloc[indexCode]["NDex"]).endswith("X"):
+            print("IS X MEGA")
+        elif (fullMon.iloc[indexCode]["NDex"]).endswith("Y"):
+            print("IS Y MEGA")
+        else:
+            print("IS MEGA")
 
     if("Mega " + fullMon.iloc[indexCode]["Name"]) in monNames:
         print("HAS MEGA")
@@ -64,6 +72,8 @@ class App(ctk.CTk):
             padx=20,
             pady=20
         )
+
+        self.Search.bind("<KeyRelease>", lambda e: print(self.Search.get()))
 
         self.pokemonList = MainFrame(
             master=self,
