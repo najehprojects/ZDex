@@ -21,7 +21,7 @@ class SearchFrame(ctk.CTkEntry):
         super().__init__(master, **kwargs)
     def searched():
         query = SearchFrame.get()
-        print("Search query:", query)
+        print("Search query: ", query)
 
 class PokemonButton(ctk.CTkButton):
     def __init__(self, master, **kwargs):
