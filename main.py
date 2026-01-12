@@ -19,8 +19,8 @@ class MainFrame(ctk.CTkScrollableFrame):
 class SearchFrame(ctk.CTkEntry):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-    def searched():
-        query = SearchFrame.get()
+    def searched(self):
+        query = self.get()
         print("Search query: ", query)
 
 class PokemonButton(ctk.CTkButton):
