@@ -7,7 +7,6 @@ ctk.set_appearance_mode("dark")
 
 fullMon = pd.read_csv('data/Lists/pokemon.csv')
 monNames = fullMon['Name'].tolist()
-realNames = monNames
 
 searchDB = False
 
@@ -59,6 +58,8 @@ class App(ctk.CTk):
         self.resizable(False, False)
         self.iconbitmap('data/Images/GreatBall.ico')
 
+        self.live_search_enabled = ctk.BooleanVar(value=True)
+
         self.Search = SearchFrame(
             master=self,
             width=215,
@@ -67,13 +68,25 @@ class App(ctk.CTk):
         )
 
         self.Search.grid(
-            row=0,
+            row=1,
             column=0,
             padx=20,
             pady=20
         )
 
-        self.Search.bind("<KeyRelease>", command= lambda event: self.searched(searchDB))
+        self.menuBar = ctk.CTkFrame(self, height=40)
+        self.menuBar.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=(5, 0))
+
+        self.liveToggle = ctk.CTkCheckBox(
+            self.menuBar,
+            text="Live search (may slow performance)",
+            variable=self.live_search_enabled
+        )
+
+        self.Search.bind("<KeyRelease>", self.on_key_release)
+        self.Search.bind("<Return>", self.searched)
+
+        self.liveToggle.pack(side="left", padx=10, pady=5)
 
         self.pokemonList = MainFrame(
             master=self,
@@ -82,7 +95,7 @@ class App(ctk.CTk):
         )
 
         self.pokemonList.grid(
-            row=1,
+            row=2,
             column=0,
             padx = 20,
             pady = 0
@@ -96,8 +109,8 @@ class App(ctk.CTk):
         )
 
         self.imageTab.grid(
-            row=0,
-            column=1,
+            row=1,
+            column=2,
             padx=(10, 20),
             pady = 0,
             rowspan = 2,
@@ -106,95 +119,43 @@ class App(ctk.CTk):
 
         self.imageTab.pack_propagate(False)
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=2)
+        self.grid_rowconfigure(0, weight=2)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        for Dex, Name in enumerate(monNames):
+        self.pokemon_buttons = []
 
-            self.temp = PokemonButton(
+        for dex, name in enumerate(monNames):
+            btn = PokemonButton(
                 master=self.pokemonList,
-                fg_color= "#1f1f1f",
+                fg_color="#1f1f1f",
                 width=340,
                 height=30,
-                text=Name,
-                command=lambda name=Name, dex=Dex: selected(name, dex)
+                text=name,
+                command=lambda n=name, d=dex: selected(n, d)
             )
 
-            self.temp.grid(
-                row=Dex,
-                column=0,
-                padx=5,
-                pady=2
-            )
+            btn.grid(row=dex, column=0, padx=5, pady=2, sticky="w")
+            btn.widgetName = name
+            btn.searchName = name.lower()
 
-            self.temp.widgetName = Name
+            self.pokemon_buttons.append(btn)
 
-    def searched(self, searchDB):
+    def on_key_release(self, event):
+        if self.live_search_enabled.get():
+            self.searched()
 
-        if searchDB == False:
-            searchDB = True
-            query = self.Search.get()
-            print("Search query:", query)
+    def searched(self, event=None):
+        query = self.Search.get().strip().lower()
 
-            for widget in self.pokemonList.winfo_children():
-                widget.destroy()
-
-            count = 0
-
-            if query == "":
-
-                for Dex, Name in enumerate(monNames):
-
-                    self.temp = PokemonButton(
-                        master=self.pokemonList,
-                        fg_color="#1f1f1f",
-                        width=340,
-                        height=30,
-                        text=Name,
-                        command=lambda name=Name, dex=Dex: selected(name, dex)
-                    )
-
-                    self.temp.grid(
-                        row=Dex,
-                        column=0,
-                        padx=5,
-                        pady=2
-                    )
-
-                    self.temp.widgetName = Name
+        row = 0
+        for btn in self.pokemon_buttons:
+            if query in btn.searchName:
+                btn.grid(row=row)
+                row += 1
             else:
-
-                for mon in monNames:
-                    print(mon)
-                    print(count)
-
-                    if query.lower() in mon.lower():
-                        self.temp = PokemonButton(
-                            master=self.pokemonList,
-                            fg_color="#1f1f1f",
-                            width=340,
-                            height=30,
-                            text=mon,
-                            command=lambda name=mon, dex=count: selected(name, dex)
-                        )
-
-                        self.temp.grid(
-                            row=count,
-                            column=0,
-                            padx=5,
-                            pady=2
-                        )
-
-                        self.temp.widgetName = mon
-
-                    else:
-                        realNames.remove(mon)
-
-                    count += 1
-
-            searchDB = False
+                btn.grid_remove()
 
 app = App()
 app.mainloop()
