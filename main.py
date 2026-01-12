@@ -1,5 +1,3 @@
-from itertools import count
-
 import customtkinter as ctk
 import matplotlib as mpl
 import pandas as pd
