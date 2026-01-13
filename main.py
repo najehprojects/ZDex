@@ -1,5 +1,9 @@
 import customtkinter as ctk
 import matplotlib as mpl
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import matplotlib.colors as mcolors
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -11,28 +15,24 @@ searchDB = False
 
 SPRITE_ROOT = Path("data/Images/Sprites")
 
-def get_auto_sprite(ndex: str, *, shiny=False, female=False, size=(250, 250)) -> ctk.CTkImage:
-    """
-    Automatically finds the correct Pokémon sprite and returns a centered CTkImage.
+STAT_AVERAGES = {
+    "HP": 71,
+    "Attack": 81,
+    "Defense": 75,
+    "Sp. Atk": 73,
+    "Sp. Def": 72,
+    "Speed": 70
+}
 
-    Handles:
-    - NDex from CSV (e.g., "3", "3M", "150X")
-    - Zero-padding to 4 digits
-    - Mega/X/Y forms
-    - Female / Shiny variants
-    - Centered and resized CTkImage
-    """
-    # Separate number and any suffix letters (e.g., '3M' -> num='3', suffix='M')
+def get_auto_sprite(ndex: str, *, shiny=False, female=False, size=(250, 250)) -> ctk.CTkImage:
+
     num_part = "".join(c for c in ndex if c.isdigit())
     letter_suffix = "".join(c for c in ndex if not c.isdigit())
 
-    # Zero-pad the number part to 4 digits
     base_ndex = num_part.zfill(4)
 
-    # Combine with suffix for filename
     filename_base = f"{base_ndex}{letter_suffix}"
 
-    # Folder selection
     folder = SPRITE_ROOT
     if shiny and female:
         folder = folder / "shiny" / "female"
@@ -41,31 +41,87 @@ def get_auto_sprite(ndex: str, *, shiny=False, female=False, size=(250, 250)) ->
     elif female:
         folder = folder / "fVariants"
 
-    # For female non-shiny, add "F"
     female_suffix = "F" if female and not shiny else ""
 
-    # Try to find a valid sprite (letter suffixes already included)
     filename = f"{filename_base}{female_suffix}.png"
     sprite_path = folder / filename
 
     if not sprite_path.exists():
         raise FileNotFoundError(f"Sprite not found: {sprite_path}")
 
-    # Load image
     img = Image.open(sprite_path)
 
-    # Resize proportionally
     scale = min(size[0] / img.width, size[1] / img.height)
     new_size = (int(img.width * scale), int(img.height * scale))
     img_resized = img.resize(new_size, Image.Resampling.LANCZOS)
 
-    # Paste onto centered canvas
     canvas = Image.new("RGBA", size, (0,0,0,0))
     x = (size[0] - new_size[0]) // 2
     y = (size[1] - new_size[1]) // 2
     canvas.paste(img_resized, (x, y), mask=img_resized.convert("RGBA"))
 
     return ctk.CTkImage(light_image=canvas, size=size)
+
+def draw_animated_stats_chart(frame, stats_row, duration=800):
+    for widget in frame.winfo_children():
+        widget.destroy()
+
+    stats_labels = ["HP", "Atk", "Def", "SpAtk", "SpDef", "Speed"]
+    stats_values = [
+        stats_row["HP"],
+        stats_row["Attack"],
+        stats_row["Defense"],
+        stats_row["Sp. Atk"],
+        stats_row["Sp. Def"],
+        stats_row["Speed"]
+    ]
+
+    colors = []
+    for stat_name, value in zip(stats_labels, stats_values):
+        avg = STAT_AVERAGES.get(stat_name, 70)
+        diff_ratio = (value - avg) / avg
+        if diff_ratio <= -0.4:
+            colors.append("#ff4d4d")
+        elif diff_ratio >= 0.4:
+            colors.append("#66ff66")
+        else:
+            if diff_ratio < 0:
+                ratio = (diff_ratio + 0.4) / 0.4
+                colors.append(mcolors.to_hex((1.0, ratio, 0.0)))
+            else:
+                ratio = diff_ratio / 0.4
+                colors.append(mcolors.to_hex((1.0 - ratio, 1.0, 0.0)))
+
+    fig, ax = plt.subplots(figsize=(6, 3.5), dpi=100)
+    fig.patch.set_facecolor('#1f1f1f')
+    ax.set_facecolor('#1f1f1f')
+    fig.subplots_adjust(bottom=0.25)
+
+    bars = ax.bar(stats_labels, [0]*len(stats_values), color=colors)
+    ax.set_ylim(0, 255)
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.tick_params(left=False, bottom=False, labelcolor='white')
+    ax.set_ylabel("Stat Value", color="white")
+    ax.set_title("Stats", color="white", fontsize=12)
+
+    canvas = FigureCanvasTkAgg(fig, master=frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill="both", expand=True)
+
+    frames = 30
+    def animate(frame_num):
+        progress = frame_num / frames
+        for bar, value in zip(bars, stats_values):
+            bar.set_height(value * progress)
+        return bars
+
+    ani = FuncAnimation(fig, animate, frames=frames+1, interval=duration//frames, blit=False, repeat=False)
+    frame._ani = ani
+
 
 class ImageFrame(ctk.CTkImage):
     def __init__(self):
@@ -178,6 +234,32 @@ class App(ctk.CTk):
 
         self.tabView.pack_propagate(False)
 
+        stats_tab = self.tabView.tab("Stats")
+
+        stats_tab.grid_columnconfigure(0, weight=35)
+        stats_tab.grid_columnconfigure(1, weight=65)
+        stats_tab.grid_rowconfigure(0, weight=1)
+
+        self.statsFrame = ctk.CTkFrame(
+            self.tabView.tab("Stats"),
+            width=450,
+            height=450
+        )
+
+        # Inside your app __init__ or tab setup
+        self.statsFrame = ctk.CTkFrame(
+            master=self.tabView.tab("Stats"),
+            fg_color="#1f1f1f"
+        )
+
+        self.statsFrame.grid(
+            row=0,
+            column=0,
+            padx=10,
+            pady=10,
+            sticky="n"
+        )
+
         self.imageLabel = ImageLabel(
             master=self.tabView.tab("General"),
             image=self.currentImage,
@@ -265,6 +347,11 @@ class App(ctk.CTk):
             return
 
         self.imageLabel.configure(image=self.currentImage)
+
+        for widget in self.statsFrame.winfo_children():
+            widget.destroy()
+
+        draw_animated_stats_chart(self.statsFrame, self.fullMon.iloc[indexcode])
 
 app = App()
 app.mainloop()
