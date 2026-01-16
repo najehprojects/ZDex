@@ -122,7 +122,6 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
     ani = FuncAnimation(fig, animate, frames=frames+1, interval=duration//frames, blit=False, repeat=False)
     frame._ani = ani
 
-
 class ImageFrame(ctk.CTkImage):
     def __init__(self):
         ctk.CTkImage.__init__(self)
