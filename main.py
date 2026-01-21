@@ -92,7 +92,7 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
                 ratio = diff_ratio / 0.4
                 colors.append(mcolors.to_hex((1.0 - ratio, 1.0, 0.0)))
 
-    fig, ax = plt.subplots(figsize=(6, 3.5), dpi=100)
+    fig, ax = plt.subplots(figsize=(5, 3.5), dpi=100)
     fig.patch.set_facecolor('#1f1f1f')
     ax.set_facecolor('#1f1f1f')
     fig.subplots_adjust(bottom=0.25)
@@ -110,7 +110,7 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
 
     canvas = FigureCanvasTkAgg(fig, master=frame)
     canvas.draw()
-    canvas.get_tk_widget().pack(fill="both", expand=True)
+    canvas.get_tk_widget().pack(fill="y")#, expand=True)
 
     frames = 30
     def animate(frame_num):
@@ -121,7 +121,6 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
 
     ani = FuncAnimation(fig, animate, frames=frames+1, interval=duration//frames, blit=False, repeat=False)
     frame._ani = ani
-
 
 class ImageFrame(ctk.CTkImage):
     def __init__(self):
@@ -240,16 +239,23 @@ class App(ctk.CTk):
         stats_tab.grid_columnconfigure(1, weight=65)
         stats_tab.grid_rowconfigure(0, weight=1)
 
-        self.statsFrame = ctk.CTkFrame(
-            self.tabView.tab("Stats"),
-            width=450,
-            height=450
-        )
-
-        # Inside your app __init__ or tab setup
-        self.statsFrame = ctk.CTkFrame(
+        self.statsFrameBG = ctk.CTkFrame(
             master=self.tabView.tab("Stats"),
             fg_color="#1f1f1f"
+        )
+
+        self.statsFrameBG.grid(
+            row=0,
+            column=0,
+            padx=10,
+            pady=10,
+            sticky="n"
+        )
+
+        self.statsFrame = ctk.CTkFrame(
+            self.statsFrameBG,
+            width=300,
+            height=450
         )
 
         self.statsFrame.grid(
