@@ -1,7 +1,10 @@
+import math
+
 import customtkinter as ctk
 import matplotlib as mpl
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -10,7 +13,9 @@ import time
 
 ctk.set_appearance_mode("dark")
 
-searchDB = False
+plt.rcParams["text.color"] = "white"
+mpl.rcParams["figure.facecolor"] = "none"
+mpl.rcParams["axes.facecolor"] = "none"
 
 SPRITE_ROOT = Path("data/Images/Sprites")
 
@@ -111,7 +116,7 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
     ax.set_ylabel("Stat Value", color="white")
     ax.set_title("Stats", color="white", fontsize=12)
 
-    canvas = mpl.backends.backend_tkagg.FigureCanvasTkAgg(fig, master=frame)
+    canvas = FigureCanvasTkAgg(fig, master=frame)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="y")#, expand=True)
 
@@ -186,15 +191,15 @@ class FilterTopLevel(ctk.CTkToplevel):
             genCheckButton = ctk.CTkCheckBox(
                 self,
                 text="Gen {}".format(i),
-                checkbox_width=32,
-                checkbox_height=32,
+                checkbox_width=25,
+                checkbox_height=25,
             )
 
             genCheckButton.grid(
                 column=0,
                 row=i,
-                padx=5,
-                pady=5
+                padx=10,
+                pady=7
             )
 
             genCheckButton.widget = genCheckButton.get()
@@ -226,10 +231,35 @@ class App(ctk.CTk):
         self.monIDs = self.fullMon['NDex'].tolist()
         self.monTypes = (self.fullMon['Type 1'].tolist() + self.fullMon['Type 2'].tolist())
 
-        self.typeCounts = {}
+        self.typeCounts = {
+            "Normal" : 0,
+            "Water" : 0,
+            "Fire": 0,
+            "Electric": 0,
+            "Grass": 0,
+            "Ice": 0,
+            "Fighting": 0,
+            "Poison": 0,
+            "Ground": 0,
+            "Flying": 0,
+            "Psychic": 0,
+            "Bug": 0,
+            "Rock": 0,
+            "Ghost": 0,
+            "Dragon": 0,
+            "Dark": 0,
+            "Steel": 0,
+            "Fairy": 0,
+        }
 
         for pos, val in enumerate(self.monTypes):
-            print(self.monTypes[pos])
+            if pd.notna(val):
+                self.typeCounts[val] += 1
+
+        labels = list(self.typeCounts.keys())
+        sizes = list(self.typeCounts.values())
+
+        print(self.typeCounts)
 
         self.title("ZDex")
         self.geometry("1000x720")
@@ -389,6 +419,35 @@ class App(ctk.CTk):
             btn.searchName = name.lower()
 
             self.pokemon_buttons.append(btn)
+
+        fig, ax = plt.subplots(figsize=(5.2, 3.5))
+        fig.patch.set_visible(False)
+        ax.patch.set_visible(False)
+
+        ax.pie(
+            sizes,
+            labels=labels,
+            autopct="%1.1f%%",
+            startangle=90
+        )
+        ax.set_title("Pokémon Type Distribution")
+        ax.axis("equal")
+        ax.set_frame_on(False)
+
+        canvas = FigureCanvasTkAgg(
+            fig,
+            master=self.tabView.tab("Welcome")
+        )
+        canvas.draw()
+
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.configure(bg="#242424")
+        canvas_widget.grid(
+            row=1,
+            column=0,
+            padx=10,
+            pady=10,
+        )
 
     def openFilter(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
