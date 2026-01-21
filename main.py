@@ -1,13 +1,12 @@
 import customtkinter as ctk
 import matplotlib as mpl
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-import matplotlib.colors as mcolors
 import pandas as pd
 import numpy as np
 from pathlib import Path
 from PIL import Image, ImageTk
+import time
 
 ctk.set_appearance_mode("dark")
 
@@ -23,6 +22,9 @@ STAT_AVERAGES = {
     "Sp. Def": 72,
     "Speed": 70
 }
+
+def wait(secs):
+    time.sleep(secs)
 
 def get_auto_sprite(ndex: str, *, shiny=False, female=False, size=(250, 250)) -> ctk.CTkImage:
 
@@ -63,6 +65,7 @@ def get_auto_sprite(ndex: str, *, shiny=False, female=False, size=(250, 250)) ->
     return ctk.CTkImage(light_image=canvas, size=size)
 
 def draw_animated_stats_chart(frame, stats_row, duration=800):
+    plt.close()
     for widget in frame.winfo_children():
         widget.destroy()
 
@@ -87,12 +90,12 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
         else:
             if diff_ratio < 0:
                 ratio = (diff_ratio + 0.4) / 0.4
-                colors.append(mcolors.to_hex((1.0, ratio, 0.0)))
+                colors.append(mpl.colors.to_hex((1.0, ratio, 0.0)))
             else:
                 ratio = diff_ratio / 0.4
-                colors.append(mcolors.to_hex((1.0 - ratio, 1.0, 0.0)))
+                colors.append(mpl.colors.to_hex((1.0 - ratio, 1.0, 0.0)))
 
-    fig, ax = plt.subplots(figsize=(5, 3.5), dpi=100)
+    fig, ax = plt.subplots(figsize=(4.9, 3.5), dpi=100)
     fig.patch.set_facecolor('#1f1f1f')
     ax.set_facecolor('#1f1f1f')
     fig.subplots_adjust(bottom=0.25)
@@ -108,7 +111,7 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
     ax.set_ylabel("Stat Value", color="white")
     ax.set_title("Stats", color="white", fontsize=12)
 
-    canvas = FigureCanvasTkAgg(fig, master=frame)
+    canvas = mpl.backends.backend_tkagg.FigureCanvasTkAgg(fig, master=frame)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="y")#, expand=True)
 
@@ -119,7 +122,7 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
             bar.set_height(value * progress)
         return bars
 
-    ani = FuncAnimation(fig, animate, frames=frames+1, interval=duration//frames, blit=False, repeat=False)
+    ani = animation.FuncAnimation(fig, animate, frames=frames+1, interval=duration//frames, blit=False, repeat=False)
     frame._ani = ani
 
 class ImageFrame(ctk.CTkImage):
@@ -141,9 +144,46 @@ class PokemonButton(ctk.CTkButton):
 class TabFrame(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        self.add("Welcome")
         self.add("General")
         self.add("Stats")
         self.add("Related")
+
+class FilterTopLevel(ctk.CTkToplevel):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.geometry("400x300")
+        self.title("Filter")
+
+        self.label = ctk.CTkLabel(
+            self,
+            text="Filter",
+            font=("Arial",20)
+        )
+
+        self.label.grid(
+            column=0,
+            row=0,
+            padx=5,
+            pady=5
+        )
+
+        for i in range(1,7):
+            genCheckButton = ctk.CTkCheckBox(
+                self,
+                text="Gen {}".format(i),
+                checkbox_width=30,
+                checkbox_height=30,
+            )
+
+            genCheckButton.grid(
+                column=0,
+                row=i,
+                padx=5,
+                pady=5
+            )
+
+            genCheckButton.widget = genCheckButton.get()
 
 class ImageLabel(ctk.CTkLabel):
     def __init__(self, master, **kwargs):
@@ -159,6 +199,15 @@ class App(ctk.CTk):
             dtype={"NDex": str}
         )
 
+        self.FilterOptions = {
+            "IncludeAll": False,
+            "Legendaries": False,
+            "Mythicals": False,
+            "Favourites": False,
+            "Types" : [],
+            "Generations": [],
+        }
+
         self.monNames = self.fullMon['Name'].tolist()
 
         self.title("ZDex")
@@ -168,7 +217,7 @@ class App(ctk.CTk):
 
         self.live_search_enabled = ctk.BooleanVar(value=True)
 
-        self.menuBar = ctk.CTkFrame(self, height=50, width=900)
+        self.menuBar = ctk.CTkFrame(self, height=50, width=975)
         self.menuBar.grid(row=0, column=0, columnspan=3, sticky="w", padx=10, pady=20)
 
         self.liveToggle = ctk.CTkCheckBox(
@@ -196,6 +245,21 @@ class App(ctk.CTk):
         self.Search.grid(
             row=0,
             column=1,
+            padx=10,
+            sticky="w"
+        )
+
+        self.Filter = ctk.CTkButton(
+            master=self.menuBar,
+            width=70,
+            height=30,
+            text="Filter",
+            command=self.openFilter
+        )
+
+        self.Filter.grid(
+            row=0,
+            column=2,
             padx=10,
             sticky="w"
         )
@@ -241,7 +305,10 @@ class App(ctk.CTk):
 
         self.statsFrameBG = ctk.CTkFrame(
             master=self.tabView.tab("Stats"),
-            fg_color="#1f1f1f"
+            fg_color="#1f1f1f",
+            bg_color="#1f1f1f",
+            width=600,
+            height=450,
         )
 
         self.statsFrameBG.grid(
@@ -283,6 +350,7 @@ class App(ctk.CTk):
             sticky="nw",
         )
 
+        self.toplevel_window = None
         self.pokemon_buttons = []
 
         for dex, name in enumerate(self.monNames):
@@ -300,6 +368,15 @@ class App(ctk.CTk):
             btn.searchName = name.lower()
 
             self.pokemon_buttons.append(btn)
+
+    def openFilter(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = FilterTopLevel(self)
+            if self.toplevel_window.winfo_exists():
+                wait(0.2)
+                self.toplevel_window.focus()
+        else:
+            self.toplevel_window.focus()
 
     def on_key_release(self, event):
         if self.live_search_enabled.get():
