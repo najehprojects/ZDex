@@ -149,11 +149,25 @@ class TabFrame(ctk.CTkTabview):
         self.add("Stats")
         self.add("Related")
 
+        self.yap = ctk.CTkLabel(
+            self.tab("Welcome"),
+            text="Welcome to ZDex",
+        )
+
+        self.yap.grid(
+            column=0,
+            row=0,
+            padx=10,
+            pady=10,
+        )
+
 class FilterTopLevel(ctk.CTkToplevel):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+
         self.geometry("400x300")
         self.title("Filter")
+        self.resizable(False, False)
 
         self.label = ctk.CTkLabel(
             self,
@@ -172,8 +186,8 @@ class FilterTopLevel(ctk.CTkToplevel):
             genCheckButton = ctk.CTkCheckBox(
                 self,
                 text="Gen {}".format(i),
-                checkbox_width=30,
-                checkbox_height=30,
+                checkbox_width=32,
+                checkbox_height=32,
             )
 
             genCheckButton.grid(
@@ -209,6 +223,13 @@ class App(ctk.CTk):
         }
 
         self.monNames = self.fullMon['Name'].tolist()
+        self.monIDs = self.fullMon['NDex'].tolist()
+        self.monTypes = (self.fullMon['Type 1'].tolist() + self.fullMon['Type 2'].tolist())
+
+        self.typeCounts = {}
+
+        for pos, val in enumerate(self.monTypes):
+            print(self.monTypes[pos])
 
         self.title("ZDex")
         self.geometry("1000x720")
@@ -383,7 +404,7 @@ class App(ctk.CTk):
             self.searched()
 
     def searched(self, event=None):
-        query = self.Search.get().strip().lower()
+        query = self.Search.get().lower()
 
         row = 0
         for btn in self.pokemon_buttons:
