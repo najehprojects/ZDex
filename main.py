@@ -130,10 +130,6 @@ def draw_animated_stats_chart(frame, stats_row, duration=800):
     ani = animation.FuncAnimation(fig, animate, frames=frames+1, interval=duration//frames, blit=False, repeat=False)
     frame._ani = ani
 
-class ImageFrame(ctk.CTkImage):
-    def __init__(self):
-        ctk.CTkImage.__init__(self)
-
 class MainFrame(ctk.CTkScrollableFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -384,20 +380,36 @@ class App(ctk.CTk):
             sticky="n"
         )
 
-        self.imageLabel = ImageLabel(
+        self.imageBorder = ctk.CTkFrame(
             master=self.tabView.tab("General"),
+            width=250,
+            height=250,
+            border_width=10,
+            border_color="#ffffff",
+        )
+
+        self.imageBorder.grid(
+            row=0,
+            column=0,
+            padx=10,
+            pady=10,
+            sticky="nw",
+        )
+
+        self.imageLabel = ImageLabel(
+            master=self.imageBorder,
             image=self.currentImage,
             text="",
             anchor="nw",
-            width=250,
-            height=250,
+            width=225,
+            height=225,
         )
 
         self.imageLabel.grid(
             row=0,
             column=0,
-            padx=10,
-            pady=10,
+            padx=0,
+            pady=0,
             sticky="nw",
         )
 
