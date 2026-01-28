@@ -380,24 +380,8 @@ class App(ctk.CTk):
             sticky="n"
         )
 
-        self.imageBorder = ctk.CTkFrame(
-            master=self.tabView.tab("General"),
-            width=250,
-            height=250,
-            border_width=10,
-            border_color="#ffffff",
-        )
-
-        self.imageBorder.grid(
-            row=0,
-            column=0,
-            padx=10,
-            pady=10,
-            sticky="nw",
-        )
-
         self.imageLabel = ImageLabel(
-            master=self.imageBorder,
+            master=self.tabView.tab("General"),
             image=self.currentImage,
             text="",
             anchor="nw",
@@ -411,6 +395,159 @@ class App(ctk.CTk):
             padx=0,
             pady=0,
             sticky="nw",
+        )
+
+        self.generalFrame = ctk.CTkFrame(
+            master=self.tabView.tab("General"),
+            width=250,
+            height=225,
+            border_width=5,
+            border_color="#ffffff",
+        )
+
+        self.generalFrame.grid(
+            row=0,
+            column=1,
+            padx=20,
+            pady=10,
+            sticky="w",
+        )
+
+        self.nameLabel = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="Name",
+            anchor="w",
+            width=220,
+            height=30,
+            font=('Ariel', 18),
+        )
+
+        self.nameLabel.grid(
+            row=0,
+            column=0,
+            padx=10,
+            pady=10,
+            columnspan=2,
+        )
+
+        self.atkLabel = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="ATK: ",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.atkLabel.grid(
+            row=1,
+            column=0,
+            padx=10,
+            pady=7,
+        )
+
+        self.defLabel = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="DEF: ",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.defLabel.grid(
+            row=2,
+            column=0,
+            padx=10,
+            pady=7,
+        )
+
+        self.hpLabel = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="HP: ",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.hpLabel.grid(
+            row=3,
+            column=0,
+            padx=10,
+            pady=7,
+        )
+
+        self.spdLabel = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="SPD: ",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.spdLabel.grid(
+            row=4,
+            column=0,
+            padx=10,
+            pady=7,
+        )
+
+        self.spatkLabel = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="SP.ATK: ",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.spatkLabel.grid(
+            row=5,
+            column=0,
+            padx=10,
+            pady=7,
+        )
+
+        self.spdefLabel = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="SP.DEF: ",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.spdefLabel.grid(
+            row=6,
+            column=0,
+            padx=10,
+            pady=7,
+        )
+
+        self.type1Label = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="Type 1",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.type1Label.grid(
+            row=1,
+            column=1,
+            padx=10,
+            pady=7,
+        )
+
+        self.type2Label = ctk.CTkLabel(
+            master=self.generalFrame,
+            text="Type 2",
+            anchor="nw",
+            width=110,
+            height=20,
+        )
+
+        self.type2Label.grid(
+            row=2,
+            column=1,
+            padx=10,
+            pady=7,
         )
 
         self.toplevel_window = None
