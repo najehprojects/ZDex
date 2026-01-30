@@ -255,8 +255,6 @@ class App(ctk.CTk):
         labels = list(self.typeCounts.keys())
         sizes = list(self.typeCounts.values())
 
-        print(self.typeCounts)
-
         self.title("ZDex")
         self.geometry("1000x720")
         self.resizable(False, False)
@@ -640,6 +638,17 @@ class App(ctk.CTk):
         if ("Mega " + self.fullMon.iloc[indexcode]["Name"] + " X") in self.monNames or (
                 "Mega " + self.fullMon.iloc[indexcode]["Name"] + " Y") in self.monNames:
             print("HAS X AND Y MEGA")
+
+        self.nameLabel.configure(text=pokemon)
+        self.atkLabel.configure(text=("ATK:", self.fullMon.iloc[indexcode]["Attack"]))
+        self.defLabel.configure(text=("DEF:", self.fullMon.iloc[indexcode]["Defense"]))
+        self.spatkLabel.configure(text=("SP.ATK:", self.fullMon.iloc[indexcode]["Sp. Atk"]))
+        self.spdefLabel.configure(text=("SP.DEF:", self.fullMon.iloc[indexcode]["Sp. Def"]))
+        self.spdLabel.configure(text=("SPD:", self.fullMon.iloc[indexcode]["Speed"]))
+        self.hpLabel.configure(text=("HP:", self.fullMon.iloc[indexcode]["HP"]))
+
+        self.type1Label.configure(text=self.fullMon.iloc[indexcode]["Type 1"])
+        self.type2Label.configure(text=self.fullMon.iloc[indexcode]["Type 2"])
 
         row = self.fullMon.iloc[indexcode]
         ndex_csv = str(row["NDex"])
