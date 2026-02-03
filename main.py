@@ -1,5 +1,4 @@
 import math
-
 import customtkinter as ctk
 import matplotlib as mpl
 import matplotlib.animation as animation
