@@ -165,7 +165,28 @@ class FilterTopLevel(ctk.CTkToplevel):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.geometry("400x300")
+        self.types = [
+            "Normal",
+            "Water",
+            "Fire",
+            "Electric",
+            "Grass",
+            "Ice",
+            "Fighting",
+            "Poison",
+            "Ground",
+            "Flying",
+            "Psychic",
+            "Bug",
+            "Rock",
+            "Ghost",
+            "Dragon",
+            "Dark",
+            "Steel",
+            "Fairy"
+        ]
+
+        self.geometry("450x325")
         self.title("Filter")
         self.resizable(False, False)
 
@@ -198,6 +219,60 @@ class FilterTopLevel(ctk.CTkToplevel):
             )
 
             genCheckButton.widget = genCheckButton.get()
+
+        self.applyButton = ctk.CTkButton(
+            self,
+            text="Apply",
+            width=200,
+            height=30,
+        )
+
+        self.applyButton.grid(
+            column=1,
+            columnspan=2,
+            row=8,
+            padx=5,
+            pady=5,
+            sticky="n",
+        )
+
+        typeCounter = 0
+
+        for type in self.types:
+            typeCounter += 1
+            print(typeCounter, type)
+            typeCheckButton = ctk.CTkCheckBox(
+                self,
+                text=type,
+                checkbox_width=25,
+                checkbox_height=25,
+            )
+
+            if typeCounter < 7:
+                typeCheckButton.grid(
+                    column=1,
+                    row=typeCounter,
+                    padx=10,
+                    pady=7
+                )
+
+            elif typeCounter > 6 and typeCounter < 13:
+                typeCheckButton.grid(
+                    column=2,
+                    row=typeCounter-6,
+                    padx=10,
+                    pady=7
+                )
+
+            elif typeCounter > 12:
+                typeCheckButton.grid(
+                    column=3,
+                    row=typeCounter-12,
+                    padx=10,
+                    pady=7
+                )
+
+            typeCheckButton.widget = typeCheckButton.get()
 
 class ImageLabel(ctk.CTkLabel):
     def __init__(self, master, **kwargs):
@@ -438,8 +513,8 @@ class App(ctk.CTk):
         self.atkLabel.grid(
             row=1,
             column=0,
-            padx=10,
-            pady=7,
+            padx=20,
+            pady=5,
         )
 
         self.defLabel = ctk.CTkLabel(
@@ -453,8 +528,8 @@ class App(ctk.CTk):
         self.defLabel.grid(
             row=2,
             column=0,
-            padx=10,
-            pady=7,
+            padx=20,
+            pady=5,
         )
 
         self.hpLabel = ctk.CTkLabel(
@@ -468,8 +543,8 @@ class App(ctk.CTk):
         self.hpLabel.grid(
             row=3,
             column=0,
-            padx=10,
-            pady=7,
+            padx=20,
+            pady=5,
         )
 
         self.spdLabel = ctk.CTkLabel(
@@ -483,8 +558,8 @@ class App(ctk.CTk):
         self.spdLabel.grid(
             row=4,
             column=0,
-            padx=10,
-            pady=7,
+            padx=20,
+            pady=5,
         )
 
         self.spatkLabel = ctk.CTkLabel(
@@ -498,8 +573,8 @@ class App(ctk.CTk):
         self.spatkLabel.grid(
             row=5,
             column=0,
-            padx=10,
-            pady=7,
+            padx=20,
+            pady=5,
         )
 
         self.spdefLabel = ctk.CTkLabel(
@@ -513,8 +588,8 @@ class App(ctk.CTk):
         self.spdefLabel.grid(
             row=6,
             column=0,
-            padx=10,
-            pady=7,
+            padx=20,
+            pady=5,
         )
 
         self.type1Label = ctk.CTkLabel(
@@ -529,7 +604,7 @@ class App(ctk.CTk):
             row=1,
             column=1,
             padx=10,
-            pady=7,
+            pady=5,
         )
 
         self.type2Label = ctk.CTkLabel(
@@ -541,10 +616,10 @@ class App(ctk.CTk):
         )
 
         self.type2Label.grid(
-            row=2,
+            row=3,
             column=1,
             padx=10,
-            pady=7,
+            pady=5,
         )
 
         self.toplevel_window = None
