@@ -161,6 +161,13 @@ class TabFrame(ctk.CTkTabview):
             pady=10,
         )
 
+class FilterTabFrame(ctk.CTkTabview):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.add("Generations")
+        self.add("Types")
+        self.add("Misc")
+
 class FilterTopLevel(ctk.CTkToplevel):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -186,7 +193,7 @@ class FilterTopLevel(ctk.CTkToplevel):
             "Fairy"
         ]
 
-        self.geometry("450x325")
+        self.geometry("450x375")
         self.title("Filter")
         self.resizable(False, False)
 
@@ -203,10 +210,24 @@ class FilterTopLevel(ctk.CTkToplevel):
             pady=5
         )
 
+        self.filterTabs = FilterTabFrame(
+            self,
+            width=425,
+            height=285,
+        )
+
+        self.filterTabs.grid(
+            column=0,
+            row=1,
+            columnspan=3,
+            padx=10,
+            sticky="n",
+        )
+
         for i in range(1,7):
             genCheckButton = ctk.CTkCheckBox(
-                self,
-                text="Gen {}".format(i),
+                self.filterTabs.tab("Generations"),
+                text="Generation {}".format(i),
                 checkbox_width=25,
                 checkbox_height=25,
             )
@@ -223,13 +244,14 @@ class FilterTopLevel(ctk.CTkToplevel):
         self.applyButton = ctk.CTkButton(
             self,
             text="Apply",
-            width=200,
-            height=30,
+            width=300,
+            height=40,
+            font=("Arial", 20)
         )
 
         self.applyButton.grid(
-            column=1,
-            columnspan=2,
+            column=0,
+            columnspan=3,
             row=8,
             padx=5,
             pady=5,
@@ -242,7 +264,7 @@ class FilterTopLevel(ctk.CTkToplevel):
             typeCounter += 1
             print(typeCounter, type)
             typeCheckButton = ctk.CTkCheckBox(
-                self,
+                self.filterTabs.tab("Types"),
                 text=type,
                 checkbox_width=25,
                 checkbox_height=25,
