@@ -296,6 +296,9 @@ class FilterTopLevel(ctk.CTkToplevel):
 
             typeCheckButton.widget = typeCheckButton.get()
 
+    #def setFilterParams(self, event=None):
+
+
 class ImageLabel(ctk.CTkLabel):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -663,7 +666,7 @@ class App(ctk.CTk):
 
             self.pokemon_buttons.append(btn)
 
-        fig, ax = plt.subplots(figsize=(5.2, 3.5))
+        fig, ax = plt.subplots(figsize=(5.2, 5))
         fig.patch.set_visible(False)
         ax.patch.set_visible(False)
 
@@ -673,13 +676,13 @@ class App(ctk.CTk):
             autopct="%1.1f%%",
             startangle=90
         )
-        ax.set_title("Pokémon Type Distribution")
+
         ax.axis("equal")
         ax.set_frame_on(False)
 
         canvas = FigureCanvasTkAgg(
             fig,
-            master=self.tabView.tab("Welcome")
+            master=self.tabView.tab("Welcome"),
         )
         canvas.draw()
 
@@ -689,7 +692,7 @@ class App(ctk.CTk):
             row=1,
             column=0,
             padx=10,
-            pady=10,
+            pady=20,
         )
 
     def openFilter(self):
