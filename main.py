@@ -692,6 +692,8 @@ class App(ctk.CTk):
             pady=20,
         )
 
+        self.selected("Bulbasaur", 0o001)
+
     def openFilter(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = FilterTopLevel(self)
