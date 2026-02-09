@@ -296,9 +296,6 @@ class FilterTopLevel(ctk.CTkToplevel):
 
             typeCheckButton.widget = typeCheckButton.get()
 
-    #def setFilterParams(self, event=None):
-
-
 class ImageLabel(ctk.CTkLabel):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
