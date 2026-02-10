@@ -1,4 +1,7 @@
 import math
+import random
+from xml.etree.ElementTree import tostring
+
 import customtkinter as ctk
 import matplotlib as mpl
 import matplotlib.animation as animation
@@ -361,6 +364,8 @@ class App(ctk.CTk):
         self.menuBar = ctk.CTkFrame(self, height=50, width=975)
         self.menuBar.grid(row=0, column=0, columnspan=3, sticky="w", padx=10, pady=20)
 
+       # Top bar
+
         self.liveToggle = ctk.CTkCheckBox(
             self.menuBar,
             height=40,
@@ -405,6 +410,21 @@ class App(ctk.CTk):
             sticky="w"
         )
 
+        self.Random = ctk.CTkButton(
+            master=self.menuBar,
+            width=70,
+            height=30,
+            text="Random",
+            command=self.chooseRandom
+        )
+
+        self.Random.grid(
+            row=0,
+            column=3,
+            padx=10,
+            sticky="w"
+        )
+
         self.Search.bind("<KeyRelease>", self.on_key_release)
         self.Search.bind("<Return>", self.searched)
 
@@ -437,6 +457,8 @@ class App(ctk.CTk):
         )
 
         self.tabView.pack_propagate(False)
+
+        # Stats Tab
 
         stats_tab = self.tabView.tab("Stats")
 
@@ -491,10 +513,12 @@ class App(ctk.CTk):
             sticky="nw",
         )
 
+        # Pokemon Info Frame
+
         self.generalFrame = ctk.CTkFrame(
             master=self.tabView.tab("General"),
-            width=250,
-            height=225,
+            width=200,
+            height=245,
             border_width=5,
             border_color="#ffffff",
         )
@@ -519,7 +543,7 @@ class App(ctk.CTk):
         self.nameLabel.grid(
             row=0,
             column=0,
-            padx=10,
+            padx=20,
             pady=10,
             columnspan=2,
         )
@@ -528,7 +552,7 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="ATK: ",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
@@ -543,7 +567,7 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="DEF: ",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
@@ -558,7 +582,7 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="HP: ",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
@@ -573,7 +597,7 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="SPD: ",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
@@ -588,7 +612,7 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="SP.ATK: ",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
@@ -603,7 +627,7 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="SP.DEF: ",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
@@ -618,7 +642,7 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="Type 1",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
@@ -633,12 +657,12 @@ class App(ctk.CTk):
             master=self.generalFrame,
             text="Type 2",
             anchor="nw",
-            width=110,
+            width=90,
             height=20,
         )
 
         self.type2Label.grid(
-            row=3,
+            row=2,
             column=1,
             padx=10,
             pady=5,
@@ -660,6 +684,7 @@ class App(ctk.CTk):
             btn.grid(row=dex, column=0, padx=5, pady=2, sticky="w")
             btn.widgetName = name
             btn.searchName = name.lower()
+            btn.dexID = str(self.fullMon.iloc[dex]["NDex"])
 
             self.pokemon_buttons.append(btn)
 
@@ -694,6 +719,19 @@ class App(ctk.CTk):
 
         self.selected("Bulbasaur", 0o001)
 
+    def pokemonIDFormat(self, pokemonID):
+        pokemonID = str(pokemonID)
+        while len(pokemonID) < 4:
+            pokemonID = "0" + pokemonID
+        return int(pokemonID)
+
+    def chooseRandom(self):
+        ranID = random.randint(1,721)
+        pkmnName = self.fullMon.iloc[ranID]["Name"]
+        formattedID = self.pokemonIDFormat(ranID)
+
+        self.selected(pkmnName, formattedID)
+
     def openFilter(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = FilterTopLevel(self)
@@ -715,27 +753,30 @@ class App(ctk.CTk):
             if query in btn.searchName:
                 btn.grid(row=row)
                 row += 1
+            elif query in btn.dexID:
+                btn.grid(row=row)
+                row += 1
             else:
                 btn.grid_remove()
 
     def selected(self, pokemon, indexcode):
-        print("The pokemon is", pokemon)
+        #print("The pokemon is", pokemon)
         pkmnName = self.fullMon.iloc[indexcode]["Name"]
 
-        if (self.fullMon.iloc[indexcode]["Name"]).startswith("Mega "):
-            if (self.fullMon.iloc[indexcode]["NDex"]).endswith("X"):
-                print("IS X MEGA")
-            elif (self.fullMon.iloc[indexcode]["NDex"]).endswith("Y"):
-                print("IS Y MEGA")
-            else:
-                print("IS MEGA")
+        #if (self.fullMon.iloc[indexcode]["Name"]).startswith("Mega "):
+            #if (self.fullMon.iloc[indexcode]["NDex"]).endswith("X"):
+                #print("IS X MEGA")
+            #elif (self.fullMon.iloc[indexcode]["NDex"]).endswith("Y"):
+                #print("IS Y MEGA")
+            #else:
+                #print("IS MEGA")
 
-        if ("Mega " + self.fullMon.iloc[indexcode]["Name"]) in self.monNames:
-            print("HAS MEGA")
+        #if ("Mega " + self.fullMon.iloc[indexcode]["Name"]) in self.monNames:
+            #print("HAS MEGA")
 
-        if ("Mega " + self.fullMon.iloc[indexcode]["Name"] + " X") in self.monNames or (
-                "Mega " + self.fullMon.iloc[indexcode]["Name"] + " Y") in self.monNames:
-            print("HAS X AND Y MEGA")
+        #if ("Mega " + self.fullMon.iloc[indexcode]["Name"] + " X") in self.monNames or (
+                #"Mega " + self.fullMon.iloc[indexcode]["Name"] + " Y") in self.monNames:
+            #print("HAS X AND Y MEGA")
 
         self.nameLabel.configure(text=pokemon)
         self.atkLabel.configure(text=("ATK:", self.fullMon.iloc[indexcode]["Attack"]))
