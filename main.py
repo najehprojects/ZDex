@@ -1,14 +1,10 @@
-import math
 import random
-from xml.etree.ElementTree import tostring
-
 import customtkinter as ctk
 import matplotlib as mpl
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
-import numpy as np
 from pathlib import Path
 from PIL import Image, ImageTk
 import time
@@ -172,8 +168,9 @@ class FilterTabFrame(ctk.CTkTabview):
         self.add("Misc")
 
 class FilterTopLevel(ctk.CTkToplevel):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
+    def __init__(self, app):
+        super().__init__(app)
+        self.app = app
 
         self.types = [
             "Normal",
@@ -227,7 +224,9 @@ class FilterTopLevel(ctk.CTkToplevel):
             sticky="n",
         )
 
-        for i in range(1,7):
+        self.gen_checkboxes = {}
+
+        for i in range(1, 7):
             genCheckButton = ctk.CTkCheckBox(
                 self.filterTabs.tab("Generations"),
                 text="Generation {}".format(i),
@@ -242,14 +241,15 @@ class FilterTopLevel(ctk.CTkToplevel):
                 pady=7
             )
 
-            genCheckButton.widget = genCheckButton.get()
+            self.gen_checkboxes[i] = genCheckButton
 
         self.applyButton = ctk.CTkButton(
             self,
             text="Apply",
             width=300,
             height=40,
-            font=("Arial", 20)
+            font=("Arial", 20),
+            command=self.apply_filters
         )
 
         self.applyButton.grid(
@@ -261,14 +261,15 @@ class FilterTopLevel(ctk.CTkToplevel):
             sticky="n",
         )
 
+        self.type_checkboxes = {}
         typeCounter = 0
 
-        for type in self.types:
+        for type_ in self.types:
             typeCounter += 1
-            print(typeCounter, type)
+
             typeCheckButton = ctk.CTkCheckBox(
                 self.filterTabs.tab("Types"),
-                text=type,
+                text=type_,
                 checkbox_width=25,
                 checkbox_height=25,
             )
@@ -280,24 +281,84 @@ class FilterTopLevel(ctk.CTkToplevel):
                     padx=10,
                     pady=7
                 )
-
-            elif typeCounter > 6 and typeCounter < 13:
+            elif typeCounter < 13:
                 typeCheckButton.grid(
                     column=2,
-                    row=typeCounter-6,
+                    row=typeCounter - 6,
                     padx=10,
                     pady=7
                 )
-
-            elif typeCounter > 12:
+            else:
                 typeCheckButton.grid(
                     column=3,
-                    row=typeCounter-12,
+                    row=typeCounter - 12,
                     padx=10,
                     pady=7
                 )
 
-            typeCheckButton.widget = typeCheckButton.get()
+            self.type_checkboxes[type_] = typeCheckButton
+
+        self.legendaryCheckButton = ctk.CTkCheckBox(
+            self.filterTabs.tab("Misc"),
+            text="Legendary",
+            checkbox_width=45,
+            checkbox_height=45,
+        )
+
+        self.legendaryCheckButton.grid(
+            row=1,
+            column=0,
+            padx=10,
+            pady=10,
+            sticky="w",
+        )
+
+        self.mythicalCheckButton = ctk.CTkCheckBox(
+            self.filterTabs.tab("Misc"),
+            text="Mythical",
+            checkbox_width=45,
+            checkbox_height=45,
+        )
+
+        self.mythicalCheckButton.grid(
+            row=2,
+            column=0,
+            padx=10,
+            pady=10,
+            sticky="w",
+        )
+
+        self.megaCheckButton = ctk.CTkCheckBox(
+            self.filterTabs.tab("Misc"),
+            text="Mega",
+            checkbox_width=45,
+            checkbox_height=45,
+        )
+
+        self.megaCheckButton.grid(
+            row=3,
+            column=0,
+            padx=10,
+            pady=10,
+            sticky="w",
+        )
+
+    def apply_filters(self):
+        opts = self.app.FilterOptions
+
+        opts["Legendaries"] = self.legendaryCheckButton.get() == 1
+        opts["Mythicals"] = self.mythicalCheckButton.get() == 1
+        opts["Mega"] = self.megaCheckButton.get() == 1
+
+        opts["Types"] = [
+            t for t, cb in self.type_checkboxes.items() if cb.get() == 1
+        ]
+
+        opts["Generations"] = [
+            g for g, cb in self.gen_checkboxes.items() if cb.get() == 1
+        ]
+
+        self.app.refresh_pokemon_list()
 
 class ImageLabel(ctk.CTkLabel):
     def __init__(self, master, **kwargs):
@@ -317,7 +378,7 @@ class App(ctk.CTk):
             "IncludeAll": False,
             "Legendaries": False,
             "Mythicals": False,
-            "Favourites": False,
+            "Mega": False,
             "Types" : [],
             "Generations": [],
         }
@@ -685,6 +746,13 @@ class App(ctk.CTk):
             btn.widgetName = name
             btn.searchName = name.lower()
             btn.dexID = str(self.fullMon.iloc[dex]["NDex"])
+            btn.generation = int(self.fullMon.iloc[dex]["Generation"])
+            btn.is_legendary = self.fullMon.iloc[dex]["Legendary"]
+            btn.is_mythical = self.fullMon.iloc[dex]["Mythical"]
+            btn.csv_index = dex
+            btn.is_mega = (self.fullMon.iloc[dex]["Name"]).startswith("Mega ")
+            btn.types = [self.fullMon.iloc[dex]["Type 1"], self.fullMon.iloc[dex]["Type 2"]]
+            btn.types = [t for t in btn.types if pd.notna(t)]
 
             self.pokemon_buttons.append(btn)
 
@@ -719,6 +787,56 @@ class App(ctk.CTk):
 
         self.selected("Bulbasaur", 0o001)
 
+    def refresh_pokemon_list(self):
+        query = self.Search.get().lower().lstrip("0")
+        opts = self.FilterOptions
+        row = 0
+
+        for btn in self.pokemon_buttons:
+            matches_text = (
+                    query == ""
+                    or query in btn.searchName
+                    or query in btn.dexID
+            )
+
+            matches_type = (
+                    not opts["Types"]
+                    or any(t in opts["Types"] for t in btn.types)
+            )
+
+            matches_gen = (
+                    not opts["Generations"]
+                    or btn.generation in opts["Generations"]
+            )
+
+            matches_legendary = (
+                    not opts["Legendaries"]
+                    or btn.is_legendary
+            )
+
+            matches_mythical = (
+                    not opts["Mythicals"]
+                    or btn.is_mythical
+            )
+
+            matches_mega = (
+                    not opts["Mega"]
+                    or btn.is_mega
+            )
+
+            if (
+                    matches_text
+                    and matches_type
+                    and matches_gen
+                    and matches_legendary
+                    and matches_mythical
+                    and matches_mega
+            ):
+                btn.grid(row=row)
+                row += 1
+            else:
+                btn.grid_remove()
+
     def pokemonIDFormat(self, pokemonID):
         pokemonID = str(pokemonID)
         while len(pokemonID) < 4:
@@ -746,18 +864,7 @@ class App(ctk.CTk):
             self.searched()
 
     def searched(self, event=None):
-        query = self.Search.get().lower()
-
-        row = 0
-        for btn in self.pokemon_buttons:
-            if query in btn.searchName:
-                btn.grid(row=row)
-                row += 1
-            elif query in btn.dexID:
-                btn.grid(row=row)
-                row += 1
-            else:
-                btn.grid_remove()
+        self.refresh_pokemon_list()
 
     def selected(self, pokemon, indexcode):
         #print("The pokemon is", pokemon)
