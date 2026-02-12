@@ -146,7 +146,7 @@ class TabFrame(ctk.CTkTabview):
         self.add("Welcome")
         self.add("General")
         self.add("Stats")
-        self.add("Related")
+        #self.add("Related")
 
         self.yap = ctk.CTkLabel(
             self.tab("Welcome"),
