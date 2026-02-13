@@ -1,15 +1,14 @@
 import random
-from doctest import master
+import time
+from pathlib import Path
 
 import customtkinter as ctk
 import matplotlib as mpl
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
-from pathlib import Path
-from PIL import Image, ImageTk
-import time
+from PIL import Image
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 ctk.set_appearance_mode("dark")
 
