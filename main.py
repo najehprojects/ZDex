@@ -1,4 +1,6 @@
 import random
+from doctest import master
+
 import customtkinter as ctk
 import matplotlib as mpl
 import matplotlib.animation as animation
@@ -435,9 +437,30 @@ class App(ctk.CTk):
             variable=self.live_search_enabled
         )
 
-        self.liveToggle.grid(
+        self.logoImage = ctk.CTkImage(
+            light_image=Image.open('data/Images/logo.png'),
+            dark_image=Image.open('data/Images/logo.png'),
+            size=(78,35),
+        )
+
+        self.logoFrame = ctk.CTkLabel(
+            master=self.menuBar,
+            height=35,
+            width=80,
+            image=self.logoImage,
+            text="",
+        )
+
+        self.logoFrame.grid(
             row=0,
             column=0,
+            padx=10,
+            sticky="w",
+        )
+
+        self.liveToggle.grid(
+            row=0,
+            column=1,
             padx=10,
             sticky="w"
         )
@@ -451,7 +474,7 @@ class App(ctk.CTk):
 
         self.Search.grid(
             row=0,
-            column=1,
+            column=2,
             padx=10,
             sticky="w"
         )
@@ -466,7 +489,7 @@ class App(ctk.CTk):
 
         self.Filter.grid(
             row=0,
-            column=2,
+            column=3,
             padx=10,
             sticky="w"
         )
@@ -481,7 +504,7 @@ class App(ctk.CTk):
 
         self.Random.grid(
             row=0,
-            column=3,
+            column=4,
             padx=10,
             sticky="w"
         )
